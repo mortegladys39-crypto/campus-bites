@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Campus Bites - Order Now</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+<div class="top">
+<a href="index.html" class="logo">🍔 Campus Bites</a>
+<div style="display:flex;gap:8px">
+<a href="admin.html" style="background:red;color:white;padding:8px 12px;border-radius:12px;font-size:11px;font-weight:900;text-decoration:none">👑 Admin</a>
+<div style="background:#0f2e1f;color:white;padding:8px 12px;border-radius:12px;font-size:11px;font-weight:900">🛒 <span id="cartCount">0</span></div>
+</div>
+</div>
+
+<div class="hero">
+<h1>Welcome to <span>Campus Bites!</span> 🎉</h1>
+<p>Tap any food below! GCash: 09481114418</p>
+<div class="badges">
+<span></span><span>💳 GCash Ready</span><span>📱 QR Ready</span>
+</div>
+</div>
+
+<div class="cats">
+<button class="cat active" data-cat="All">⭐ All (23)</button>
+<button class="cat" data-cat="Foods">🍔 Foods (9)</button>
+<button class="cat" data-cat="Snacks">🍟 Snacks (6)</button>
+<button class="cat" data-cat="Drinks">🥤 Drinks (8)</button>
+</div>
+
+<div style="font-weight:900;margin:14px 0 8px">🍽️ Menu - TAP TO ADD!</div>
+<div class="grid" id="products"></div>
+
+<div class="card" style="border:2px solid #0f2e1f">
+<div style="display:flex;justify-content:space-between"><b>🛒 Cart & Payment</b><b class="total-badge">₱<span id="tot">0</span></b></div>
+<div id="cartList" style="margin-top:10px">No items</div>
+<div class="input-group"><label>👤 Your Name:</label><input id="custName" placeholder="Enter your name"></div>
+<div class="input-group"><label>💳 Payment - Choose:</label>
+<div class="pay-row">
+<div class="pay active" data-pay="Cash">💵<br>Cash on Pickup</div>
+<div class="pay" data-pay="GCash">📱<br>GCash</div>
+</div>
+<div class="gcash" id="gcashBox">
+<div style="text-align:center;font-weight:900">📱 GCash Payment - 09481114418</div>
+<img id="gcashQR" class="gcash-qr">
+<div class="gcash-info">
+<div>📱 Number: <b>09481114418</b></div>
+<div>👤 Name: <b>Campus Bites</b></div>
+</div>
+<div class="input-group" style="margin-top:10px"><label>GCash Reference No.:</label><input id="gcashRef" placeholder="Enter ref number" style="border:none"></div>
+<div class="input-group"><label>Your GCash No.:</label><input id="gcashNum" placeholder="09xxxxxxxxx" style="border:none"></div>
+</div>
+</div>
+<button class="btn btn-order" id="placeBtn">🛒 PLACE ORDER</button>
+<div style="text-align:center;font-size:11px;color:#777;margin-top:6px"><span id="count">0 items</span></div>
+</div>
+
+<div class="card"><b>👀 Live Orders - Your Orders Status</b><div id="publicOrders" style="margin-top:10px"></div></div>
+
+<div class="card qr-card"><div style="font-weight:900">📱 QR Scan to Order - For Everyone!</div><img id="mainQR"><div id="qrLink"></div><div style="font-size:11px;margin-top:8px">Scan this QR - customers can order from their phone!</div></div>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>
