@@ -1,104 +1,381 @@
-var defaultProducts=[
-{id:1,name:"Cheeseburger",desc:"Beef patty, cheese",price:75,cat:"Foods",file:"1-cheeseburger.jpg"},
-{id:2,name:"Chicken Burger",desc:"Crispy chicken",price:63,cat:"Foods",file:"2-chicken-burger.jpg"},
-{id:3,name:"Pizza Slice",desc:"Cheesy slice",price:70,cat:"Foods",file:"3-pizza.jpg"},
-{id:4,name:"Fried Chicken",desc:"Crispy, juicy",price:80,cat:"Foods",file:"4-fried-chicken.jpg"},
-{id:5,name:"Chicken Rice",desc:"Much rice",price:85,cat:"Foods",file:"5-chicken-rice.jpg"},
-{id:6,name:"Pork Adobo",desc:"Filipino style",price:75,cat:"Foods",file:"6-adobo.jpg"},
-{id:7,name:"Pancit Canton",desc:"Savory noodles",price:56,cat:"Foods",file:"7-pancit.jpg"},
-{id:8,name:"Hotdog Sandwich",desc:"Hotdog w/ sauce",price:42,cat:"Foods",file:"8-hotdog.jpg"},
-{id:9,name:"Siomai Rice",desc:"Siomai + rice",price:58,cat:"Foods",file:"9-siomai.jpg"},
-{id:10,name:"French Fries",desc:"Golden crispy",price:35,cat:"Snacks",file:"10-fries.jpg"},
-{id:11,name:"Chicken Nuggets",desc:"Crunchy bites",price:60,cat:"Snacks",file:"11-nuggets.jpg"},
-{id:12,name:"Nachos",desc:"Chips cheese",price:50,cat:"Snacks",file:"12-nachos.jpg"},
-{id:13,name:"Banana Cue",desc:"Sweet banana",price:20,cat:"Snacks",file:"13-banana-cue.jpg"},
-{id:14,name:"Turon",desc:"Banana roll",price:20,cat:"Snacks",file:"14-turon.jpg"},
-{id:15,name:"Cookies",desc:"Sweet cookies",price:25,cat:"Snacks",file:"15-cookies.jpg"},
-{id:16,name:"Coca-Cola",desc:"Cold soft drink",price:20,cat:"Drinks",file:"16-coca-cola.jpg"},
-{id:17,name:"Sprite",desc:"Lemon soda",price:20,cat:"Drinks",file:"17-sprite.jpg"},
-{id:18,name:"Royal",desc:"Orange soda",price:20,cat:"Drinks",file:"18-royal.jpg"},
-{id:19,name:"Iced Tea",desc:"Chilled tea",price:25,cat:"Drinks",file:"19-iced-tea.jpg"},
-{id:20,name:"Milk Tea",desc:"With pearls",price:35,cat:"Drinks",file:"20-milk-tea.jpg"},
-{id:21,name:"Water",desc:"Water",price:15,cat:"Drinks",file:"21-water.jpg"},
-{id:22,name:"Orange Juice",desc:"Fresh juice",price:25,cat:"Drinks",file:"22-orange-juice.jpg"},
-{id:23,name:"Coffee",desc:"Hot coffee",price:25,cat:"Drinks",file:"23-coffee.jpg"}
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+import {
+  getDatabase,
+  ref,
+  onValue,
+  update,
+  remove
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+// FIREBASE CONFIGURATION
+const firebaseConfig = {
+  apiKey: "AIzaSyDXK31-88ftLzLDPUBCKWLAeD4zIpcIxQ",
+  authDomain: "campus--bites.firebaseapp.com",
+  databaseURL: "https://campus--bites-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "campus--bites",
+  storageBucket: "campus--bites.firebasestorage.app",
+  messagingSenderId: "699180723559",
+  appId: "1:699180723559:web:fe5db0dc8e127fbf9353c2",
+  measurementId: "G-WEPGSVYD9V"
+};
+
+// AUTHORIZED ADMIN UID
+const ADMIN_UID = "RerNqFRiO8T3mya9l1i7qlYD3Fc2";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+let stopOrdersListener = null;
+let ordersData = {};
+
+// PRODUCTS - SAME AS CUSTOMER MENU
+const defaultProducts = [
+  {id:1,name:"Cheeseburger",desc:"Beef patty, cheese",price:75,cat:"Foods",file:"1-cheeseburger.jpg"},
+  {id:2,name:"Chicken Burger",desc:"Crispy chicken",price:63,cat:"Foods",file:"2-chicken-burger.jpg"},
+  {id:3,name:"Pizza Slice",desc:"Cheesy slice",price:70,cat:"Foods",file:"3-pizza.jpg"},
+  {id:4,name:"Fried Chicken",desc:"Crispy, juicy",price:80,cat:"Foods",file:"4-fried-chicken.jpg"},
+  {id:5,name:"Chicken Rice",desc:"Much rice",price:85,cat:"Foods",file:"5-chicken-rice.jpg"},
+  {id:6,name:"Pork Adobo",desc:"Filipino style",price:75,cat:"Foods",file:"6-adobo.jpg"},
+  {id:7,name:"Pancit Canton",desc:"Savory noodles",price:56,cat:"Foods",file:"7-pancit.jpg"},
+  {id:8,name:"Hotdog Sandwich",desc:"Hotdog w/ sauce",price:42,cat:"Foods",file:"8-hotdog.jpg"},
+  {id:9,name:"Siomai Rice",desc:"Siomai + rice",price:58,cat:"Foods",file:"9-siomai.jpg"},
+  {id:10,name:"French Fries",desc:"Golden crispy",price:35,cat:"Snacks",file:"10-fries.jpg"},
+  {id:11,name:"Chicken Nuggets",desc:"Crunchy bites",price:60,cat:"Snacks",file:"11-nuggets.jpg"},
+  {id:12,name:"Nachos",desc:"Chips cheese",price:50,cat:"Snacks",file:"12-nachos.jpg"},
+  {id:13,name:"Banana Cue",desc:"Sweet banana",price:20,cat:"Snacks",file:"13-banana-cue.jpg"},
+  {id:14,name:"Turon",desc:"Banana roll",price:20,cat:"Snacks",file:"14-turon.jpg"},
+  {id:15,name:"Cookies",desc:"Sweet cookies",price:25,cat:"Snacks",file:"15-cookies.jpg"},
+  {id:16,name:"Coca-Cola",desc:"Cold soft drink",price:20,cat:"Drinks",file:"16-coca-cola.jpg"},
+  {id:17,name:"Sprite",desc:"Lemon soda",price:20,cat:"Drinks",file:"17-sprite.jpg"},
+  {id:18,name:"Royal",desc:"Orange soda",price:20,cat:"Drinks",file:"18-royal.jpg"},
+  {id:19,name:"Iced Tea",desc:"Chilled tea",price:25,cat:"Drinks",file:"19-iced-tea.jpg"},
+  {id:20,name:"Milk Tea",desc:"With pearls",price:35,cat:"Drinks",file:"20-milk-tea.jpg"},
+  {id:21,name:"Water",desc:"Water",price:15,cat:"Drinks",file:"21-water.jpg"},
+  {id:22,name:"Orange Juice",desc:"Fresh juice",price:25,cat:"Drinks",file:"22-orange-juice.jpg"},
+  {id:23,name:"Coffee",desc:"Hot coffee",price:25,cat:"Drinks",file:"23-coffee.jpg"}
 ];
 
-var products = JSON.parse(localStorage.getItem("cbProducts") || JSON.stringify(defaultProducts));
-var productImages = JSON.parse(localStorage.getItem("cbProductImages") || "{}");
-var orders = JSON.parse(localStorage.getItem("cbOrders") || "[]");
+const $ = id => document.getElementById(id);
 
-function save(){
-localStorage.setItem("cbProducts",JSON.stringify(products));
-localStorage.setItem("cbProductImages",JSON.stringify(productImages));
-localStorage.setItem("cbOrders",JSON.stringify(orders));
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  })[char]);
 }
 
-function showProductManager(){
-var container=document.getElementById("productManager");
-container.innerHTML=products.map(p=>{
-var hasImg=productImages[p.id];
-var status=hasImg?"✅ Has Real Picture":"❌ No Real Picture Yet";
-var color=hasImg?"#16a34a":"#ef4444";
-return `<div class="prod-item">
-<div style="text-align:center">
-<div style="width:70px;height:70px;background:#f3f4f6;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #ddd">${hasImg?`<img src="${hasImg}" style="width:100%;height:100%;object-fit:cover">`:`<div style="font-size:9px;color:#999;text-align:center">No Pic<br>${p.id}</div>`}</div>
-<div style="font-size:9px;margin-top:4px;color:${color};font-weight:800">${status}</div>
-</div>
-<div style="flex:1">
-<div style="font-weight:800;font-size:12px">${p.id}. ${p.name} - ₱${p.price}</div>
-<div style="font-size:10px;color:#777">File: images/${p.file} | Cat: ${p.cat}</div>
-<input type="file" accept="image/*" data-upload="${p.id}" style="margin-top:6px;font-size:11px;width:100%">
-<div style="font-size:9px;color:#0f2e1f;margin-top:2px">↑ Click to upload REAL PICTURE for ${p.name}!</div>
-</div>
-</div>`;
-}).join("");
-container.querySelectorAll("[data-upload]").forEach(el=>{
-el.addEventListener("change",e=>{
-var id=parseInt(el.getAttribute("data-upload"));
-var file=e.target.files[0];
-if(!file) return;
-var reader=new FileReader();
-reader.onload=ev=>{
-productImages[id]=ev.target.result;
-save();
-showProductManager();
-alert("✅ Real picture saved for "+products.find(x=>x.id===id).name+"! Now check index.html - picture will show!");
-};
-reader.readAsDataURL(file);
+function loginMessage(text, color = "red") {
+  $("loginMessage").textContent = text;
+  $("loginMessage").style.color = color;
+}
+
+// PRODUCT PICTURE MANAGER
+function showProductManager() {
+  const container = $("productManager");
+
+  container.innerHTML = defaultProducts.map(product => `
+    <div class="prod-item">
+      <div style="text-align:center">
+        <div style="width:70px;height:70px;background:#f3f4f6;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #ddd">
+          <img
+            src="images/${encodeURIComponent(product.file)}"
+            alt="${escapeHTML(product.name)}"
+            style="width:100%;height:100%;object-fit:cover"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+          >
+          <div style="display:none;font-size:10px;color:#999;text-align:center">
+            No Picture
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:1">
+        <div style="font-weight:800;font-size:12px">
+          ${product.id}. ${escapeHTML(product.name)} - ₱${product.price}
+        </div>
+        <div style="font-size:10px;color:#777">
+          File: images/${escapeHTML(product.file)}
+        </div>
+        <div style="font-size:10px;color:#0f2e1f;margin-top:5px">
+          Category: ${product.cat}
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+$("showNamesBtn").addEventListener("click", () => {
+  const names = defaultProducts.map(product =>
+    product.file + " - " + product.name
+  ).join("\n");
+
+  alert("IMAGE FILE NAMES:\n\n" + names);
 });
+
+$("refreshBtn").addEventListener("click", () => {
+  showProductManager();
+  renderOrders();
 });
+
+// ORDER MANAGEMENT
+function renderOrders() {
+  const container = $("adminOrders");
+  const entries = Object.entries(ordersData);
+
+  if (!entries.length) {
+    container.innerHTML = `
+      <div style="color:#777;text-align:center;padding:20px">
+        No orders yet. Customer orders will appear here.
+      </div>
+    `;
+    return;
+  }
+
+  entries.sort((a, b) =>
+    (b[1].createdAt || 0) - (a[1].createdAt || 0)
+  );
+
+  container.innerHTML = entries.map(([id, order]) => {
+    const status = order.status || "Pending";
+
+    const statusColor = {
+      Pending: "#FEF3C7",
+      Preparing: "#DBEAFE",
+      Ready: "#D1FAE5",
+      Completed: "#E5E7EB",
+      Cancelled: "#FEE2E2"
+    }[status] || "#E5E7EB";
+
+    const items = Array.isArray(order.items)
+      ? order.items.map(item =>
+          `${escapeHTML(item.name)} × ${Number(item.qty) || 0}`
+        ).join(", ")
+      : "No item details";
+
+    const payment = order.payment === "GCash"
+      ? `
+        <br>Reference: ${escapeHTML(order.ref)}
+        <br>Customer GCash No.: ${escapeHTML(order.num)}
+      `
+      : "";
+
+    return `
+      <div class="order ${status.toLowerCase()}">
+        <b>Order #${escapeHTML(id.slice(-7))}</b>
+        <span style="float:right;font-weight:900">
+          ₱${Number(order.total || 0).toFixed(2)}
+        </span>
+
+        <div style="font-size:12px;margin-top:6px">
+          Customer: <b>${escapeHTML(order.name)}</b>
+        </div>
+
+        <div style="font-size:11px;color:#777;margin-top:4px">
+          ${escapeHTML(order.time || "")}
+        </div>
+
+        <div style="font-size:12px;margin:8px 0">
+          ${items}
+        </div>
+
+        <div style="font-size:11px;background:${order.payment === "GCash" ? "#DBEAFE" : "#FEF3C7"};padding:8px;border-radius:8px">
+          Payment: <b>${escapeHTML(order.payment)}</b>
+          ${payment}
+        </div>
+
+        <div style="margin-top:8px">
+          <span style="background:${statusColor};padding:5px 10px;border-radius:8px;font-size:11px;font-weight:900">
+            ${escapeHTML(status)}
+          </span>
+        </div>
+
+        <div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap">
+          <button class="btn" data-status="Pending" data-id="${escapeHTML(id)}"
+            style="background:#ddd;font-size:11px">Pending</button>
+
+          <button class="btn" data-status="Preparing" data-id="${escapeHTML(id)}"
+            style="background:#3b82f6;color:white;font-size:11px">Accept - Preparing</button>
+
+          <button class="btn" data-status="Ready" data-id="${escapeHTML(id)}"
+            style="background:#16a34a;color:white;font-size:11px">Ready</button>
+
+          <button class="btn" data-status="Completed" data-id="${escapeHTML(id)}"
+            style="background:#6b7280;color:white;font-size:11px">Completed</button>
+
+          <button class="btn" data-delete="${escapeHTML(id)}"
+            style="background:red;color:white;font-size:11px">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
-function showOrders(){
-var adm=document.getElementById("adminOrders");
-if(orders.length===0){adm.innerHTML='<div style="color:#777;text-align:center;padding:20px">No orders yet - Orders from index.html will appear here!</div>';return;}
-adm.innerHTML=orders.map((o,idx)=>{
-var badge=o.status==="Pending"?'<span style="background:#FEF3C7;padding:4px 8px;border-radius:8px">Pending</span>':o.status==="Preparing"?'<span style="background:#DBEAFE;padding:4px 8px;border-radius:8px">Preparing</span>':'<span style="background:#D1FAE5;padding:4px 8px;border-radius:8px">Ready</span>';
-return `<div class="order ${o.status.toLowerCase()}"><b>#${o.id} ${o.name} ₱${o.total}</b><br><small>${o.time}</small><div style="font-size:11px;margin:4px 0">${o.items.map(it=>it.name).join(", ")}</div><div style="font-size:11px;background:${o.payment==="GCash"?"#DBEAFE":"#FEF3C7"};padding:6px;border-radius:8px">Payment: ${o.payment}${o.payment==="GCash"?`<br>Ref: ${o.ref}<br>No: ${o.num}`:""}</div><div style="margin-top:6px">${badge}</div><div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap"><button class="btn" data-status="${idx}-Pending" style="background:#ddd;font-size:11px">Pending</button><button class="btn" data-status="${idx}-Preparing" style="background:#3b82f6;color:white;font-size:11px">Accept - Preparing</button><button class="btn" data-status="${idx}-Done" style="background:#16a34a;color:white;font-size:11px">Done - Ready</button><button class="btn" data-del="${idx}" style="background:red;color:white;font-size:11px">Delete</button></div></div>`;
-}).join("");
-adm.querySelectorAll("[data-status]").forEach(el=>el.addEventListener("click",()=>{var parts=el.getAttribute("data-status").split("-");var idx=parseInt(parts[0]);var s=parts[1];orders[idx].status=s;save();showOrders();}));
-adm.querySelectorAll("[data-del]").forEach(el=>el.addEventListener("click",()=>{var idx=parseInt(el.getAttribute("data-del"));if(confirm("Delete order?")){orders.splice(idx,1);save();showOrders();}}));
+// CHANGE ORDER STATUS
+$("adminOrders").addEventListener("click", async event => {
+  const statusButton = event.target.closest("[data-status]");
+  const deleteButton = event.target.closest("[data-delete]");
+
+  if (statusButton) {
+    const id = statusButton.dataset.id;
+    const status = statusButton.dataset.status;
+
+    if (!auth.currentUser || auth.currentUser.uid !== ADMIN_UID) {
+      alert("Unauthorized access.");
+      return;
+    }
+
+    try {
+      await update(ref(db, "orders/" + id), {
+        status: status,
+        updatedAt: Date.now()
+      });
+    } catch (error) {
+      console.error(error);
+      alert("Could not update order. Check Firebase Database Rules.");
+    }
+  }
+
+  if (deleteButton) {
+    const id = deleteButton.dataset.delete;
+
+    if (!auth.currentUser || auth.currentUser.uid !== ADMIN_UID) {
+      alert("Unauthorized access.");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to delete this order?")) return;
+
+    try {
+      await remove(ref(db, "orders/" + id));
+    } catch (error) {
+      console.error(error);
+      alert("Could not delete order. Check Firebase Database Rules.");
+    }
+  }
+});
+
+// REAL-TIME FIREBASE ORDERS
+function startOrdersListener() {
+  if (stopOrdersListener) stopOrdersListener();
+
+  const ordersRef = ref(db, "orders");
+
+  stopOrdersListener = onValue(ordersRef, snapshot => {
+    ordersData = snapshot.exists() ? snapshot.val() : {};
+    renderOrders();
+  }, error => {
+    console.error("Orders listener error:", error);
+    $("adminOrders").textContent =
+      "Unable to load orders. Please check your database rules.";
+  });
 }
 
-function login(){
-var pin=document.getElementById("pin").value;
-if(pin==="1234"||pin==="admin123"){
-document.getElementById("loginSection").style.display="none";
-document.getElementById("adminPanel").style.display="block";
-showProductManager();
-showOrders();
-}else alert("Wrong PIN! Use 1234");
-}
+// LOGIN
+$("loginBtn").addEventListener("click", async () => {
+  const email = $("adminEmail").value.trim();
+  const password = $("adminPassword").value;
+  const button = $("loginBtn");
 
-document.getElementById("loginBtn").addEventListener("click",login);
-document.getElementById("pin").addEventListener("keypress",e=>{if(e.key==="Enter") login();});
-document.getElementById("logoutBtn").addEventListener("click",()=>{document.getElementById("adminPanel").style.display="none";document.getElementById("loginSection").style.display="block";document.getElementById("pin").value="";});
-document.getElementById("clearPicsBtn").addEventListener("click",()=>{if(confirm("Delete all real pictures?")){productImages={};save();showProductManager();alert("All real pictures cleared!");}});
-document.getElementById("showNamesBtn").addEventListener("click",()=>{var list="File names for images/ folder:\n\n"+products.map(p=>p.file+" - "+p.name).join("\n");alert(list);});
-document.getElementById("refreshBtn").addEventListener("click",()=>{products=JSON.parse(localStorage.getItem("cbProducts")||JSON.stringify(defaultProducts));productImages=JSON.parse(localStorage.getItem("cbProductImages")||"{}");orders=JSON.parse(localStorage.getItem("cbOrders")||"[]");showProductManager();showOrders();alert("Refreshed!");});
+  if (!email || !password) {
+    loginMessage("Please enter your email and password.");
+    return;
+  }
 
-// QR
-var link=location.href.replace("admin.html","index.html");
-document.getElementById("adminQrLink").innerText=link;
-document.getElementById("adminQR").src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data="+encodeURIComponent(link);
+  button.disabled = true;
+  button.textContent = "LOGGING IN...";
+  loginMessage("");
+
+  try {
+    const result = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    if (result.user.uid !== ADMIN_UID) {
+      await signOut(auth);
+      loginMessage("This account is not authorized as admin.");
+    }
+  } catch (error) {
+    console.error(error);
+
+    loginMessage(
+      "Login failed. Check your email and password."
+    );
+  } finally {
+    button.disabled = false;
+    button.textContent = "🔓 LOGIN";
+  }
+});
+
+$("adminPassword").addEventListener("keydown", event => {
+  if (event.key === "Enter") $("loginBtn").click();
+});
+
+// AUTHORIZATION CHECK
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    if (stopOrdersListener) {
+      stopOrdersListener();
+      stopOrdersListener = null;
+    }
+
+    ordersData = {};
+    $("adminPanel").style.display = "none";
+    $("loginSection").style.display = "block";
+    return;
+  }
+
+  if (user.uid !== ADMIN_UID) {
+    await signOut(auth);
+    loginMessage("Unauthorized account.");
+    return;
+  }
+
+  $("loginSection").style.display = "none";
+  $("adminPanel").style.display = "block";
+
+  showProductManager();
+  startOrdersListener();
+});
+
+// LOGOUT
+$("logoutBtn").addEventListener("click", async () => {
+  try {
+    if (stopOrdersListener) {
+      stopOrdersListener();
+      stopOrdersListener = null;
+    }
+
+    await signOut(auth);
+    $("adminPassword").value = "";
+    loginMessage("You have logged out.", "#0f2e1f");
+  } catch (error) {
+    console.error(error);
+    alert("Logout failed. Please try again.");
+  }
+});
+
+// ADMIN QR CODE
+const websiteLink = location.href
+  .split("?")[0]
+  .replace(/admin\.html$/, "index.html");
+
+$("adminQrLink").textContent = websiteLink;
+
+$("adminQR").src =
+  "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" +
+  encodeURIComponent(websiteLink);
+  
