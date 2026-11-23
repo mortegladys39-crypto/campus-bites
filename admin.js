@@ -309,11 +309,12 @@ $("loginBtn").addEventListener("click", async () => {
       loginMessage("This account is not authorized as admin.");
     }
   } catch (error) {
-    console.error(error);
+  console.error("FIREBASE LOGIN ERROR:", error);
 
-    loginMessage(
-      "Login failed. Check your email and password."
-    );
+  loginMessage(
+    "Login error: " + error.code
+  );
+}
   } finally {
     button.disabled = false;
     button.textContent = "🔓 LOGIN";
