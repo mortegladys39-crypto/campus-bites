@@ -1,70 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Admin - Campus Bites</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
 <div class="wrap">
-<div class="top">
-<a href="index.html" class="logo">🍔 Campus Bites - Admin</a>
-<a href="index.html" style="background:#0f2e1f;color:white;padding:8px 12px;border-radius:12px;font-size:11px;font-weight:900;text-decoration:none">← Back to Ordering</a>
+
+  <div class="top">
+    <a href="index.html" class="logo">🍔 Campus Bites - Admin</a>
+    <a href="index.html" style="background:#0f2e1f;color:white;padding:8px 12px;border-radius:12px;font-size:11px;font-weight:900;text-decoration:none">
+      ← Back to Ordering
+    </a>
+  </div>
+
+  <div id="loginSection" class="login-box">
+    <div style="font-size:40px">🔒</div>
+    <h2>Admin Login</h2>
+    <p style="font-size:13px;color:#777">
+      Sign in using your authorized admin account.
+    </p>
+
+    <div style="max-width:400px;margin:auto">
+      <div class="input-group">
+        <label>📧 Admin Email:</label>
+        <input type="email" id="adminEmail" placeholder="Enter admin email">
+      </div>
+
+      <div class="input-group">
+        <label>🔑 Password:</label>
+        <input type="password" id="adminPassword" placeholder="Enter password">
+      </div>
+
+      <button class="btn" id="loginBtn"
+        style="background:red;color:white;padding:14px;width:100%;margin-top:14px">
+        🔓 LOGIN
+      </button>
+
+      <div id="loginMessage" style="font-size:12px;margin-top:10px"></div>
+    </div>
+  </div>
+
+  <div id="adminPanel" style="display:none">
+
+    <div class="admin-header">
+      <h1 style="margin:0">👑 Admin Panel</h1>
+      <p style="margin:6px 0 0;font-size:13px">
+        Manage Campus Bites orders and products.
+      </p>
+    </div>
+
+    <div class="card" style="border:2px solid #0f2e1f;margin-top:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <b style="font-size:16px">📸 Product Picture Manager</b>
+        <span style="background:#16a34a;color:white;padding:4px 10px;border-radius:20px;font-size:11px">
+          Images Folder
+        </span>
+      </div>
+
+      <div style="font-size:12px;color:#555;margin-top:6px">
+        Food pictures are loaded from your website's images/ folder.
+        To change a picture, replace the corresponding image file and upload
+        the updated file with your website.
+      </div>
+
+      <button class="btn" style="background:#0f2e1f;color:white;font-size:12px;margin-top:12px" id="showNamesBtn">
+        📋 Show Image File Names
+      </button>
+
+      <button class="btn" style="background:#6b7280;color:white;font-size:12px;margin-top:12px" id="refreshBtn">
+        🔄 Refresh
+      </button>
+
+      <div id="productManager" class="prod-manage"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <b style="font-size:16px">📦 Orders Management</b>
+        <span style="background:red;color:white;padding:4px 10px;border-radius:20px;font-size:11px">
+          GCash: 09481114418
+        </span>
+      </div>
+
+      <div style="font-size:12px;color:#555;margin-top:4px">
+        Accept, prepare, mark orders as ready, or delete orders.
+      </div>
+
+      <div id="adminOrders" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card qr-card">
+      <div style="font-weight:900">📱 QR For Customers - Print This!</div>
+      <img id="adminQR">
+      <div id="adminQrLink"></div>
+      <div style="font-size:12px;margin-top:8px">
+        Print and paste in canteen - customers scan to order!
+      </div>
+    </div>
+
+    <button class="btn" id="logoutBtn"
+      style="background:#777;color:white;width:100%;margin-top:14px;padding:14px">
+      🔒 LOG OUT
+    </button>
+
+  </div>
 </div>
 
-<div id="loginSection" class="login-box">
-<div style="font-size:40px">🔒</div>
-<h2>Admin Login</h2>
-<p style="font-size:13px;color:#777">Enter PIN to manage orders and upload real pictures</p>
-<div style="display:flex;gap:8px;margin-top:14px;max-width:400px;margin-left:auto;margin-right:auto">
-<input type="password" id="pin" placeholder="PIN: 1234" style="flex:1;padding:14px;border-radius:12px;border:2px solid red;font-weight:800">
-<button class="btn" style="background:red;color:white;padding:14px 24px" id="loginBtn">Unlock</button>
-</div>
-<div style="font-size:11px;color:#999;margin-top:8px">PIN: 1234</div>
-</div>
-
-<div id="adminPanel" style="display:none">
-<div class="admin-header">
-<h1 style="margin:0">👑 Admin Panel</h1>
-<p style="margin:6px 0 0;font-size:13px">Manage orders and upload REAL PICTURES for products - Connected to index.html</p>
-</div>
-
-<div class="card" style="border:2px solid #0f2e1f;margin-top:14px">
-<div style="display:flex;justify-content:space-between;align-items:center">
-<b style="font-size:16px">📸 Real Picture Manager - Upload Pictures Here!</b>
-<span style="background:#16a34a;color:white;padding:4px 10px;border-radius:20px;font-size:11px">Connected to Index</span>
-</div>
-<div style="font-size:12px;color:#555;margin-top:6px">
-<b>How to insert real pictures:</b> For each product below, click <b>"Choose File"</b> → Select your real food picture from phone/gallery → Auto saves! Pictures will instantly show in <b>index.html</b>!
-<br><br>
-You can also create <code>images/</code> folder and add files named like <code>1-cheeseburger.jpg</code>, but uploading here is easier and saves in browser!
-</div>
-<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-<button class="btn" style="background:#ef4444;color:white;font-size:12px" id="clearPicsBtn">🗑️ Clear All Real Pictures</button>
-<button class="btn" style="background:#6b7280;color:white;font-size:12px" id="showNamesBtn">📋 Show File Names</button>
-<button class="btn" style="background:#0f2e1f;color:white;font-size:12px" id="refreshBtn">🔄 Refresh</button>
-</div>
-<div id="productManager" class="prod-manage"></div>
-</div>
-
-<div class="card">
-<div style="display:flex;justify-content:space-between"><b style="font-size:16px">📦 Orders Management</b><span style="background:red;color:white;padding:4px 10px;border-radius:20px;font-size:11px">GCash: 09481114418</span></div>
-<div style="font-size:12px;color:#555;margin-top:4px">Accept / Prepare / Mark as Ready / Delete orders. GCash payments show reference numbers.</div>
-<div id="adminOrders" style="margin-top:14px"></div>
-</div>
-
-<div class="card qr-card">
-<div style="font-weight:900">📱 QR For Customers - Print This!</div>
-<img id="adminQR">
-<div id="adminQrLink"></div>
-<div style="font-size:12px;margin-top:8px">Print and paste in canteen - customers scan to order!</div>
-</div>
-
-<button class="btn" style="background:#777;color:white;width:100%;margin-top:14px;padding:14px" id="logoutBtn">🔒 Lock Admin</button>
-</div>
-
-</div>
-<script src="admin.js"></script>
+<script type="module" src="admin.js"></script>
 </body>
 </html>
