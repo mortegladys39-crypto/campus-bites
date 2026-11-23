@@ -20,7 +20,7 @@ import {
 // =====================================
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDXK31-88ftLzLDPUBCKWLAeD4zIpcIxQ",
+  apiKey: "AIzaSyDXK31-88ftLzLDPFUBCKWLAeD4zIpcIxQ",
   authDomain: "campus--bites.firebaseapp.com",
   databaseURL: "https://campus--bites-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "campus--bites",
