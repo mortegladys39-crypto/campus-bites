@@ -65,6 +65,7 @@ const defaultProducts = [
 ];
 
 const $ = id => document.getElementById(id);
+alert("ADMIN JS CONNECTED!");
 
 function escapeHTML(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
