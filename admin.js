@@ -283,7 +283,7 @@ function startOrdersListener() {
   });
 }
 
-// LOGIN
+ //LOGIN
 $("loginBtn").addEventListener("click", async () => {
   const email = $("adminEmail").value.trim();
   const password = $("adminPassword").value;
@@ -304,6 +304,25 @@ $("loginBtn").addEventListener("click", async () => {
       email,
       password
     );
+    if (result.user.uid !== ADMIN_UID) {
+      await signOut(auth);
+      loginMessage("This account is not authorized as admin.");
+    }
+
+  } catch (error) {
+    console.error("FIREBASE LOGIN ERROR:", error);
+    loginMessage("Login error: " + error.code);
+
+  } finally {
+    button.disabled = false;
+    button.textContent = "🔓 LOGIN";
+  }
+});
+
+$("adminPassword").addEventListener("keydown", event => {
+  if (event.key === "Enter") $("loginBtn").click();
+});
+
 
     if (result.user.uid !== ADMIN_UID) {
       await signOut(auth);
