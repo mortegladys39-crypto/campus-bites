@@ -15,7 +15,10 @@ import {
   remove
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
+// =====================================
 // FIREBASE CONFIGURATION
+// =====================================
+
 const firebaseConfig = {
   apiKey: "AIzaSyDXK31-88ftLzLDPUBCKWLAeD4zIpcIxQ",
   authDomain: "campus--bites.firebaseapp.com",
@@ -30,14 +33,41 @@ const firebaseConfig = {
 // AUTHORIZED ADMIN UID
 const ADMIN_UID = "RerNqFRiO8T3mya9l1i7qlYD3Fc2";
 
+// INITIALIZE FIREBASE
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
+console.log("Firebase initialized successfully.");
+
 let stopOrdersListener = null;
 let ordersData = {};
 
-// PRODUCTS - SAME AS CUSTOMER MENU
+// =====================================
+// HTML ELEMENTS
+// =====================================
+
+const $ = id => document.getElementById(id);
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function loginMessage(message, color = "red") {
+  $("loginMessage").textContent = message;
+  $("loginMessage").style.color = color;
+}
+
+// =====================================
+// PRODUCTS
+// =====================================
+
 const defaultProducts = [
   {id:1,name:"Cheeseburger",desc:"Beef patty, cheese",price:75,cat:"Foods",file:"1-cheeseburger.jpg"},
   {id:2,name:"Chicken Burger",desc:"Crispy chicken",price:63,cat:"Foods",file:"2-chicken-burger.jpg"},
@@ -64,25 +94,10 @@ const defaultProducts = [
   {id:23,name:"Coffee",desc:"Hot coffee",price:25,cat:"Drinks",file:"23-coffee.jpg"}
 ];
 
-const $ = id => document.getElementById(id);
-alert("ADMIN JS CONNECTED!");
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#39;"
-  })[char]);
-}
-
-function loginMessage(text, color = "red") {
-  $("loginMessage").textContent = text;
-  $("loginMessage").style.color = color;
-}
-
+// =====================================
 // PRODUCT PICTURE MANAGER
+// =====================================
+
 function showProductManager() {
   const container = $("productManager");
 
@@ -106,11 +121,13 @@ function showProductManager() {
         <div style="font-weight:800;font-size:12px">
           ${product.id}. ${escapeHTML(product.name)} - ₱${product.price}
         </div>
+
         <div style="font-size:10px;color:#777">
           File: images/${escapeHTML(product.file)}
         </div>
+
         <div style="font-size:10px;color:#0f2e1f;margin-top:5px">
-          Category: ${product.cat}
+          Category: ${escapeHTML(product.cat)}
         </div>
       </div>
     </div>
@@ -130,7 +147,10 @@ $("refreshBtn").addEventListener("click", () => {
   renderOrders();
 });
 
+// =====================================
 // ORDER MANAGEMENT
+// =====================================
+
 function renderOrders() {
   const container = $("adminOrders");
   const entries = Object.entries(ordersData);
@@ -173,8 +193,9 @@ function renderOrders() {
       : "";
 
     return `
-      <div class="order ${status.toLowerCase()}">
+      <div class="order ${escapeHTML(status.toLowerCase())}">
         <b>Order #${escapeHTML(id.slice(-7))}</b>
+
         <span style="float:right;font-weight:900">
           ₱${Number(order.total || 0).toFixed(2)}
         </span>
@@ -203,87 +224,117 @@ function renderOrders() {
         </div>
 
         <div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap">
+
           <button class="btn" data-status="Pending" data-id="${escapeHTML(id)}"
-            style="background:#ddd;font-size:11px">Pending</button>
+            style="background:#ddd;font-size:11px">
+            Pending
+          </button>
 
           <button class="btn" data-status="Preparing" data-id="${escapeHTML(id)}"
-            style="background:#3b82f6;color:white;font-size:11px">Accept - Preparing</button>
+            style="background:#3b82f6;color:white;font-size:11px">
+            Accept - Preparing
+          </button>
 
           <button class="btn" data-status="Ready" data-id="${escapeHTML(id)}"
-            style="background:#16a34a;color:white;font-size:11px">Ready</button>
+            style="background:#16a34a;color:white;font-size:11px">
+            Ready
+          </button>
 
           <button class="btn" data-status="Completed" data-id="${escapeHTML(id)}"
-            style="background:#6b7280;color:white;font-size:11px">Completed</button>
+            style="background:#6b7280;color:white;font-size:11px">
+            Completed
+          </button>
 
           <button class="btn" data-delete="${escapeHTML(id)}"
-            style="background:red;color:white;font-size:11px">Delete</button>
+            style="background:red;color:white;font-size:11px">
+            Delete
+          </button>
+
         </div>
       </div>
     `;
   }).join("");
 }
 
-// CHANGE ORDER STATUS
+// =====================================
+// CHANGE ORDER STATUS / DELETE ORDER
+// =====================================
+
 $("adminOrders").addEventListener("click", async event => {
   const statusButton = event.target.closest("[data-status]");
   const deleteButton = event.target.closest("[data-delete]");
 
+  if (!auth.currentUser || auth.currentUser.uid !== ADMIN_UID) {
+    alert("Unauthorized access.");
+    return;
+  }
+
   if (statusButton) {
     const id = statusButton.dataset.id;
     const status = statusButton.dataset.status;
-
-    if (!auth.currentUser || auth.currentUser.uid !== ADMIN_UID) {
-      alert("Unauthorized access.");
-      return;
-    }
 
     try {
       await update(ref(db, "orders/" + id), {
         status: status,
         updatedAt: Date.now()
       });
+
     } catch (error) {
-      console.error(error);
-      alert("Could not update order. Check Firebase Database Rules.");
+      console.error("UPDATE ORDER ERROR:", error);
+      alert("Could not update order: " + error.code);
     }
   }
 
   if (deleteButton) {
     const id = deleteButton.dataset.delete;
 
-    if (!auth.currentUser || auth.currentUser.uid !== ADMIN_UID) {
-      alert("Unauthorized access.");
+    if (!confirm("Are you sure you want to delete this order?")) {
       return;
     }
 
-    if (!confirm("Are you sure you want to delete this order?")) return;
-
     try {
       await remove(ref(db, "orders/" + id));
+
     } catch (error) {
-      console.error(error);
-      alert("Could not delete order. Check Firebase Database Rules.");
+      console.error("DELETE ORDER ERROR:", error);
+      alert("Could not delete order: " + error.code);
     }
   }
 });
 
+// =====================================
 // REAL-TIME FIREBASE ORDERS
+// =====================================
+
 function startOrdersListener() {
-  if (stopOrdersListener) stopOrdersListener();
+  if (stopOrdersListener) {
+    stopOrdersListener();
+  }
 
   const ordersRef = ref(db, "orders");
 
-  stopOrdersListener = onValue(ordersRef, snapshot => {
-    ordersData = snapshot.exists() ? snapshot.val() : {};
-    renderOrders();
-  }, error => {
-    console.error("Orders listener error:", error);
-    $("adminOrders").textContent =
-      "Unable to load orders. Please check your database rules.";
-  });
+  stopOrdersListener = onValue(
+    ordersRef,
+
+    snapshot => {
+      ordersData = snapshot.exists() ? snapshot.val() : {};
+      renderOrders();
+      console.log("Orders loaded successfully.");
+    },
+
+    error => {
+      console.error("ORDERS FIREBASE ERROR:", error);
+
+      $("adminOrders").textContent =
+        "Unable to load orders: " + error.code;
+    }
+  );
 }
 
- //LOGIN
+// =====================================
+// ADMIN LOGIN
+// =====================================
+
 $("loginBtn").addEventListener("click", async () => {
   const email = $("adminEmail").value.trim();
   const password = $("adminPassword").value;
@@ -304,14 +355,20 @@ $("loginBtn").addEventListener("click", async () => {
       email,
       password
     );
+
     if (result.user.uid !== ADMIN_UID) {
       await signOut(auth);
       loginMessage("This account is not authorized as admin.");
+      return;
     }
+
+    loginMessage("Login successful!", "#0f2e1f");
+    console.log("Admin login successful.");
 
   } catch (error) {
     console.error("FIREBASE LOGIN ERROR:", error);
-    loginMessage("Login error: " + error.code);
+
+    loginMessage("Login failed: " + error.code);
 
   } finally {
     button.disabled = false;
@@ -319,34 +376,19 @@ $("loginBtn").addEventListener("click", async () => {
   }
 });
 
+// LOGIN USING ENTER KEY
 $("adminPassword").addEventListener("keydown", event => {
-  if (event.key === "Enter") $("loginBtn").click();
-});
-
-
-    if (result.user.uid !== ADMIN_UID) {
-      await signOut(auth);
-      loginMessage("This account is not authorized as admin.");
-    }
-  } catch (error) {
-  console.error("FIREBASE LOGIN ERROR:", error);
-
-  loginMessage(
-    "Login error: " + error.code
-  );
-}
-  } finally {
-    button.disabled = false;
-    button.textContent = "🔓 LOGIN";
+  if (event.key === "Enter") {
+    $("loginBtn").click();
   }
 });
 
-$("adminPassword").addEventListener("keydown", event => {
-  if (event.key === "Enter") $("loginBtn").click();
-});
-
+// =====================================
 // AUTHORIZATION CHECK
+// =====================================
+
 onAuthStateChanged(auth, async user => {
+
   if (!user) {
     if (stopOrdersListener) {
       stopOrdersListener();
@@ -354,11 +396,14 @@ onAuthStateChanged(auth, async user => {
     }
 
     ordersData = {};
+
     $("adminPanel").style.display = "none";
     $("loginSection").style.display = "block";
+
     return;
   }
 
+  // ONLY AUTHORIZED ADMIN
   if (user.uid !== ADMIN_UID) {
     await signOut(auth);
     loginMessage("Unauthorized account.");
@@ -370,9 +415,14 @@ onAuthStateChanged(auth, async user => {
 
   showProductManager();
   startOrdersListener();
+
+  console.log("Authorized admin detected.");
 });
 
+// =====================================
 // LOGOUT
+// =====================================
+
 $("logoutBtn").addEventListener("click", async () => {
   try {
     if (stopOrdersListener) {
@@ -381,15 +431,21 @@ $("logoutBtn").addEventListener("click", async () => {
     }
 
     await signOut(auth);
+
     $("adminPassword").value = "";
+
     loginMessage("You have logged out.", "#0f2e1f");
+
   } catch (error) {
-    console.error(error);
-    alert("Logout failed. Please try again.");
+    console.error("LOGOUT ERROR:", error);
+    alert("Logout failed: " + error.code);
   }
 });
 
+// =====================================
 // ADMIN QR CODE
+// =====================================
+
 const websiteLink = location.href
   .split("?")[0]
   .replace(/admin\.html$/, "index.html");
@@ -399,4 +455,6 @@ $("adminQrLink").textContent = websiteLink;
 $("adminQR").src =
   "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" +
   encodeURIComponent(websiteLink);
+
+console.log("ADMIN JS FINISHED LOADING.");
   
