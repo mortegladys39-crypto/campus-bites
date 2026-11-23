@@ -28,7 +28,7 @@ const firebaseConfig = {
 };
 
 // AUTHORIZED ADMIN UID
-const ADMIN_UID = "RerNqFRiO8T3mya9l1i7qlYD3Fc2";
+const ADMIN_UID = "ReRerNqFRiO8T3mya9l1i7qlYD3Fc2";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
